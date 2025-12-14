@@ -1,0 +1,1506 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <title>HIGH1 SEASON 가계부</title>
+  <style>
+    :root{
+      --bg:#000;
+      --card:#0b0b0d;
+      --card2:#0f0f12;
+      --line:rgba(255,255,255,.08);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --muted2:rgba(255,255,255,.42);
+
+      /* Christmas */
+      --red:#c1121f;
+      --green:#1f7a4d;
+      --snow:#f1f1f1;
+
+      /* methods */
+      --mA: rgba(193,18,31,.18);  /* Arirang */
+      --mC: rgba(31,122,77,.18);  /* Check */
+      --mH: rgba(241,241,241,.12);/* Cash */
+
+      --shadow: 0 14px 40px rgba(0,0,0,.55);
+      --r1:22px;
+      --r2:16px;
+      --pad:16px;
+      --max: 980px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Apple SD Gothic Neo",
+              "Noto Sans KR", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(1200px 700px at 50% -120px, rgba(255,255,255,.08), transparent 55%),
+        radial-gradient(900px 520px at 18% 10%, rgba(31,122,77,.09), transparent 60%),
+        radial-gradient(900px 520px at 82% 10%, rgba(193,18,31,.08), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+      overflow-x:hidden;
+    }
+
+    /* subtle snow */
+    .snow{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.28;
+      z-index:0;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      max-width:var(--max);
+      margin:0 auto;
+      padding: 16px 14px 112px;
+    }
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin: 10px 2px 14px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      width:max-content;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color:var(--muted);
+      font-size:12.5px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .badge b{ color:var(--snow); font-weight:700; letter-spacing:.02em; }
+    .title h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:-.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .title .sub{
+      font-size:12.5px;
+      color:var(--muted);
+    }
+
+    .rightBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      cursor:pointer;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+      box-shadow: 0 8px 30px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .btn:active{ transform: scale(.98); }
+    .btn.ghost{ background: transparent; box-shadow:none; }
+    .btn.danger{
+      border-color: rgba(193,18,31,.35);
+      background: rgba(193,18,31,.12);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 920px){
+      .grid{ grid-template-columns: 1.35fr .65fr; align-items:start; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent 40%), var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r1);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .card .hd .label{
+      font-size:13px;
+      color: var(--muted);
+      letter-spacing:.01em;
+    }
+    .card .bd{ padding: 12px 14px 14px; }
+
+    /* Calendar controls */
+    .calTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .monthTitle{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .monthTitle .big{
+      font-size:18px;
+      letter-spacing:-.02em;
+      font-weight:700;
+    }
+    .monthTitle .tiny{
+      font-size:12px;
+      color:var(--muted);
+      font-family: var(--mono);
+    }
+    .nav{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .nav .btn{ padding:10px 12px; }
+
+    /* Summary cards (methods) */
+    .sum3{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    @media (min-width: 520px){
+      .sum3{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+    @media (min-width: 920px){
+      .sum3{ grid-template-columns: 1fr; }
+    }
+    .stat{
+      padding: 12px 12px;
+      border-radius: 18px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+      position:relative;
+    }
+    .stat::before{
+      content:"";
+      position:absolute;
+      inset:-40px -40px auto auto;
+      width:120px; height:120px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      filter: blur(0px);
+      transform: rotate(12deg);
+    }
+    .stat .k{ font-size:12px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+    }
+    .dot.red{ background: rgba(193,18,31,.65); border-color: rgba(193,18,31,.45); }
+    .dot.green{ background: rgba(31,122,77,.70); border-color: rgba(31,122,77,.45); }
+    .dot.snow{ background: rgba(241,241,241,.60); border-color: rgba(241,241,241,.28); }
+
+    .money{
+      margin-top:8px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .money .m1{
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+    .money .m2{
+      font-size:12.5px;
+      color:var(--muted);
+    }
+    .pct{
+      margin-top:10px;
+      height:10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      overflow:hidden;
+    }
+    .pct > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: rgba(255,255,255,.22);
+    }
+
+    /* Calendar grid */
+    .dow{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+      padding: 10px 2px 8px;
+      color: var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+    .cal{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+    }
+    .cell{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+      padding: 10px 10px 10px;
+      min-height: 88px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .cell:active{ transform: scale(.99); }
+    .cell.disabled{
+      opacity:.28;
+      cursor:not-allowed;
+    }
+    .cell .d{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .cell .d .num{
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:-.01em;
+    }
+    .cell .d .mini{
+      font-size:11px;
+      color:var(--muted2);
+      font-family: var(--mono);
+      white-space:nowrap;
+    }
+    .cell.today{
+      border-color: rgba(241,241,241,.28);
+      box-shadow: 0 0 0 1px rgba(193,18,31,.32) inset, 0 0 0 1px rgba(31,122,77,.22);
+      background: rgba(255,255,255,.03);
+    }
+    .cell.selected{
+      border-color: rgba(241,241,241,.22);
+      background: rgba(255,255,255,.05);
+    }
+    .spark{
+      position:absolute;
+      inset:-40px -40px auto auto;
+      width:120px; height:120px;
+      border-radius:999px;
+      background: radial-gradient(circle at 35% 35%, rgba(241,241,241,.35), transparent 55%);
+      opacity:0;
+    }
+    .cell.today .spark{ opacity:.55; }
+
+    .sumline{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      margin-top:2px;
+    }
+    .sumline .amt{
+      font-size:13.5px;
+      letter-spacing:-.01em;
+      font-variant-numeric: tabular-nums;
+      color: rgba(241,241,241,.92);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .pill{
+      width:max-content;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      font-size:11.5px;
+      color: var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+      max-width: 100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .pill.red{ background: var(--mA); border-color: rgba(193,18,31,.25); color: rgba(241,241,241,.92); }
+    .pill.green{ background: var(--mC); border-color: rgba(31,122,77,.25); color: rgba(241,241,241,.92); }
+    .pill.snow{ background: var(--mH); border-color: rgba(241,241,241,.18); color: rgba(241,241,241,.92); }
+
+    /* Right panel list */
+    .miniRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      padding: 8px 2px 0;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    .miniRow b{ color:var(--text); font-weight:700; font-family:var(--mono); }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top: 12px;
+    }
+    .item{
+      padding: 12px 12px;
+      border-radius: 18px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .meta{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    .topline{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      min-width:0;
+    }
+    .tag{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      max-width: 100%;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .tag.methodA{ background: var(--mA); border-color: rgba(193,18,31,.22); color: rgba(241,241,241,.92); }
+    .tag.methodC{ background: var(--mC); border-color: rgba(31,122,77,.22); color: rgba(241,241,241,.92); }
+    .tag.methodH{ background: var(--mH); border-color: rgba(241,241,241,.18); color: rgba(241,241,241,.92); }
+    .memo{
+      color: var(--muted);
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 76vw;
+    }
+    .amtR{
+      text-align:right;
+      font-variant-numeric: tabular-nums;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:flex-end;
+      min-width: 110px;
+    }
+    .amtR .n{
+      font-size:16px;
+      letter-spacing:-.02em;
+      color: rgba(241,241,241,.92);
+    }
+    .iconbtn{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      border-radius: 12px;
+      padding:8px 10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .iconbtn:active{ transform: scale(.98); }
+    .empty{
+      padding: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align:center;
+      border: 1px dashed rgba(255,255,255,.14);
+      border-radius: 18px;
+      background: rgba(255,255,255,.02);
+      margin-top: 12px;
+    }
+
+    /* Bottom bar */
+    .bottomBar{
+      position:fixed;
+      left:0; right:0;
+      bottom:0;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.78) 30%, rgba(0,0,0,.92));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,.08);
+      z-index:10;
+    }
+    .bottomInner{
+      max-width:var(--max);
+      margin:0 auto;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .bigbtn{
+      flex:1;
+      padding: 14px 14px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .bigbtn.red{ border-color: rgba(193,18,31,.25); background: rgba(193,18,31,.12); }
+    .bigbtn.green{ border-color: rgba(31,122,77,.25); background: rgba(31,122,77,.12); }
+    .bigbtn.snow{ border-color: rgba(241,241,241,.18); background: rgba(241,241,241,.08); color: rgba(241,241,241,.92); }
+    .bigbtn:active{ transform: scale(.99); }
+
+    /* Bottom sheet modal */
+    .sheetBack{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display:none;
+      z-index:20;
+    }
+    .sheet{
+      position:fixed;
+      left:0; right:0;
+      bottom:0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), transparent 40%),
+        rgba(10,10,12,.98);
+      border-top: 1px solid rgba(255,255,255,.10);
+      border-radius: 22px 22px 0 0;
+      padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+      transform: translateY(110%);
+      transition: transform .18s ease;
+      z-index:21;
+      box-shadow: 0 -20px 60px rgba(0,0,0,.65);
+    }
+    .sheetBack.show{ display:block; }
+    .sheetBack.show .sheet{ transform: translateY(0%); }
+
+    .grab{
+      width:48px; height:5px;
+      border-radius:999px;
+      background: rgba(255,255,255,.18);
+      margin: 6px auto 10px;
+    }
+    .sheetHd{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      padding: 0 2px 10px;
+    }
+    .sheetHd .t{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    .sheetHd .t .h{
+      font-size:16px;
+      font-weight:800;
+      letter-spacing:-.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .sheetHd .t .s{
+      font-size:12.5px;
+      color:var(--muted);
+      font-family:var(--mono);
+    }
+    .sheetHd .x{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 14px;
+      padding:10px 12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .sheetHd .x:active{ transform: scale(.98); }
+
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .form3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    label{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      font-size:12.5px;
+      color:var(--muted);
+      min-width:0;
+    }
+    input, select, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      color:var(--text);
+      outline:none;
+      font-size:14px;
+      font-family:var(--sans);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    textarea{ min-height:44px; resize: none; }
+    input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.35); }
+    select{
+      appearance:none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.55) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.55) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(50% - 2px),
+        calc(100% - 12px) calc(50% - 2px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat:no-repeat;
+      padding-right: 34px;
+    }
+    .sheetActions{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+    }
+    .sheetActions .btn{
+      flex:1;
+      justify-content:center;
+      padding: 14px 14px;
+      border-radius: 18px;
+      box-shadow:none;
+    }
+    .btn.primary{
+      border-color: rgba(241,241,241,.18);
+      background: rgba(255,255,255,.06);
+    }
+    .btn.red{ border-color: rgba(193,18,31,.25); background: rgba(193,18,31,.12); }
+    .btn.green{ border-color: rgba(31,122,77,.25); background: rgba(31,122,77,.12); }
+    .btn.snow{ border-color: rgba(241,241,241,.18); background: rgba(241,241,241,.08); color: rgba(241,241,241,.92); }
+
+    /* Toast */
+    #toast{
+      position: fixed;
+      left: 50%;
+      bottom: 92px;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(20,20,22,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.9);
+      font-size: 13px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 9999;
+      pointer-events:none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Snow Canvas -->
+  <canvas class="snow" id="snow"></canvas>
+
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <div class="badge">🎄 <b>Christmas Mode</b> · ❄️ HIGH1 SEASON 25/26</div>
+        <h1 id="hdrTitle">시즌 가계부</h1>
+        <div class="sub" id="hdrSub">기간: 2025-12-17 ~ 2026-03-16 · 결제: 체크/아리랑/현금</div>
+      </div>
+
+      <div class="rightBtns">
+        <button class="btn ghost" id="btnExport" title="백업">⬇️ 백업</button>
+        <button class="btn ghost" id="btnImport" title="불러오기">⬆️ 복원</button>
+        <button class="btn danger" id="btnReset" title="초기화">🗑️ 초기화</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Calendar -->
+      <section class="card">
+        <div class="hd">
+          <div class="calTop">
+            <div class="monthTitle">
+              <div class="big" id="monthBig">2025.12</div>
+              <div class="tiny" id="monthTiny">SEASON D-000</div>
+            </div>
+            <div class="nav">
+              <button class="btn" id="prevM">◀</button>
+              <button class="btn" id="todayBtn">오늘</button>
+              <button class="btn" id="nextM">▶</button>
+            </div>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="dow">
+            <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+          </div>
+          <div class="cal" id="cal"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Method summary + Day list -->
+      <section class="card">
+        <div class="hd">
+          <div class="label">결제수단 요약</div>
+          <div class="label" style="font-family:var(--mono);" id="rangeLabel">MONTH</div>
+        </div>
+        <div class="bd">
+          <div class="sum3">
+            <div class="stat" id="statA">
+              <div class="k"><span class="dot red"></span> 정선아리랑상품권</div>
+              <div class="money">
+                <div class="m1" id="aMonth">₩0</div>
+                <div class="m2" id="aSeason">시즌 누적 ₩0</div>
+              </div>
+              <div class="pct"><i id="aPct"></i></div>
+            </div>
+            <div class="stat" id="statC">
+              <div class="k"><span class="dot green"></span> 체크카드</div>
+              <div class="money">
+                <div class="m1" id="cMonth">₩0</div>
+                <div class="m2" id="cSeason">시즌 누적 ₩0</div>
+              </div>
+              <div class="pct"><i id="cPct"></i></div>
+            </div>
+            <div class="stat" id="statH">
+              <div class="k"><span class="dot snow"></span> 현금</div>
+              <div class="money">
+                <div class="m1" id="hMonth">₩0</div>
+                <div class="m2" id="hSeason">시즌 누적 ₩0</div>
+              </div>
+              <div class="pct"><i id="hPct"></i></div>
+            </div>
+          </div>
+
+          <div class="miniRow">
+            <div>선택 날짜 <b id="selDate">—</b></div>
+            <div>지출합계 <b id="selOut">₩0</b></div>
+          </div>
+
+          <div class="list" id="list"></div>
+          <div class="empty" id="empty" style="display:none;">선택한 날짜에 내역이 없어요. 아래에서 추가해봐 👇</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottomBar">
+    <div class="bottomInner">
+      <button class="bigbtn red" id="addArirang">＋ 아리랑</button>
+      <button class="bigbtn green" id="addCheck">＋ 체크</button>
+      <button class="bigbtn snow" id="addCash">＋ 현금</button>
+    </div>
+  </div>
+
+  <!-- Import file input -->
+  <input type="file" id="fileInput" accept="application/json" style="display:none" />
+
+  <!-- Bottom sheet -->
+  <div class="sheetBack" id="sheetBack" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="grab"></div>
+      <div class="sheetHd">
+        <div class="t">
+          <div class="h" id="sheetTitle">거래 추가</div>
+          <div class="s" id="sheetSub">—</div>
+        </div>
+        <button class="x" id="sheetClose">닫기</button>
+      </div>
+
+      <div class="form">
+        <label>
+          날짜
+          <input type="date" id="fDate" />
+        </label>
+        <label>
+          금액(원)
+          <input type="number" id="fAmt" inputmode="numeric" placeholder="예: 12000" />
+        </label>
+      </div>
+
+      <div class="form3">
+        <label>
+          결제수단
+          <select id="fMethod">
+            <option value="A">정선아리랑상품권</option>
+            <option value="C">체크카드</option>
+            <option value="H">현금</option>
+          </select>
+        </label>
+        <label>
+          유형
+          <select id="fType">
+            <option value="out">지출</option>
+            <option value="in">수입</option>
+          </select>
+        </label>
+        <label>
+          카테고리
+          <select id="fCat">
+            <option value="식비">🍜 식비</option>
+            <option value="편의점">🏪 편의점</option>
+            <option value="카페">☕ 카페</option>
+            <option value="교통">🚆 교통</option>
+            <option value="숙소/시즌방">🏠 숙소/시즌방</option>
+            <option value="생활용품">🧺 생활용품</option>
+            <option value="술/유흥">🍺 술/유흥</option>
+            <option value="의료/컨디션">🏥 의료/컨디션</option>
+            <option value="기타">🎁 기타</option>
+          </select>
+        </label>
+      </div>
+
+      <label style="margin-top:10px;">
+        메모(선택)
+        <textarea id="fMemo" placeholder="예: 고한역 편의점 / 시즌방 생필품"></textarea>
+      </label>
+
+      <div class="sheetActions">
+        <button class="btn primary" id="saveBtn">저장</button>
+        <button class="btn danger" id="cancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+(() => {
+  /* =========================
+     CONFIG (fixed season)
+  ========================= */
+  const SEASON_START = "2025-12-17";
+  const SEASON_END   = "2026-03-16";
+  const STORAGE_KEY  = "high1_season_ledger_v1";
+
+  /* =========================
+     Helpers
+  ========================= */
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    hdrTitle: $("hdrTitle"),
+    hdrSub: $("hdrSub"),
+
+    monthBig: $("monthBig"),
+    monthTiny: $("monthTiny"),
+    cal: $("cal"),
+
+    prevM: $("prevM"),
+    nextM: $("nextM"),
+    todayBtn: $("todayBtn"),
+
+    rangeLabel: $("rangeLabel"),
+
+    aMonth: $("aMonth"),
+    cMonth: $("cMonth"),
+    hMonth: $("hMonth"),
+    aSeason: $("aSeason"),
+    cSeason: $("cSeason"),
+    hSeason: $("hSeason"),
+    aPct: $("aPct"),
+    cPct: $("cPct"),
+    hPct: $("hPct"),
+
+    selDate: $("selDate"),
+    selOut: $("selOut"),
+    list: $("list"),
+    empty: $("empty"),
+
+    addArirang: $("addArirang"),
+    addCheck: $("addCheck"),
+    addCash: $("addCash"),
+
+    sheetBack: $("sheetBack"),
+    sheetClose: $("sheetClose"),
+    sheetTitle: $("sheetTitle"),
+    sheetSub: $("sheetSub"),
+    fDate: $("fDate"),
+    fAmt: $("fAmt"),
+    fMethod: $("fMethod"),
+    fType: $("fType"),
+    fCat: $("fCat"),
+    fMemo: $("fMemo"),
+    saveBtn: $("saveBtn"),
+    cancelBtn: $("cancelBtn"),
+
+    btnExport: $("btnExport"),
+    btnImport: $("btnImport"),
+    btnReset: $("btnReset"),
+    fileInput: $("fileInput"),
+
+    snow: $("snow"),
+    toast: $("toast"),
+  };
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const fromISO = (s) => {
+    const [y,m,d] = s.split("-").map(Number);
+    return new Date(y, m-1, d);
+  };
+  const toYM = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+  const fmtYM = (ym) => {
+    const [y,m] = ym.split("-");
+    return `${y}.${m}`;
+  };
+  const fmtKRW = (n) => "₩" + Math.abs(Math.round(n)).toLocaleString("ko-KR");
+  const fmtSigned = (type, n) => (type === "in" ? "+" : "-") + fmtKRW(n);
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const escapeHtml = (str) =>
+    String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+  function toast(msg){
+    clearTimeout(toast._t);
+    els.toast.textContent = msg;
+    els.toast.style.opacity = "1";
+    els.toast.style.transform = "translateX(-50%) translateY(-2px)";
+    toast._t = setTimeout(()=>{
+      els.toast.style.opacity = "0";
+      els.toast.style.transform = "translateX(-50%) translateY(6px)";
+    }, 1500);
+  }
+
+  function inSeason(dateISO){
+    return dateISO >= SEASON_START && dateISO <= SEASON_END;
+  }
+
+  /* =========================
+     State
+  ========================= */
+  const todayISO = toISO(new Date());
+  const seasonStartD = fromISO(SEASON_START);
+  const seasonEndD = fromISO(SEASON_END);
+
+  let state = {
+    viewYM: toYM(new Date()),
+    selectedDate: clampDate(todayISO),
+    items: [] // {id, date, type(in/out), method(A/C/H), cat, memo, amount, ts}
+  };
+
+  function clampDate(dateISO){
+    if(dateISO < SEASON_START) return SEASON_START;
+    if(dateISO > SEASON_END) return SEASON_END;
+    return dateISO;
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const saved = JSON.parse(raw);
+      if(saved && typeof saved === "object"){
+        if(typeof saved.viewYM === "string") state.viewYM = saved.viewYM;
+        if(typeof saved.selectedDate === "string") state.selectedDate = clampDate(saved.selectedDate);
+        if(Array.isArray(saved.items)) state.items = saved.items;
+      }
+    }catch(e){}
+  }
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  /* =========================
+     Calendar render
+  ========================= */
+  function monthBounds(ym){
+    const [y,m] = ym.split("-").map(Number);
+    const first = new Date(y, m-1, 1);
+    const last = new Date(y, m, 0);
+    return {first, last};
+  }
+
+  function daysInMonth(ym){
+    const {last} = monthBounds(ym);
+    return last.getDate();
+  }
+
+  function firstDow(ym){
+    const {first} = monthBounds(ym);
+    return first.getDay(); // 0 Sun
+  }
+
+  function seasonDDay(){
+    // D- number until season end (inclusive-ish)
+    const now = new Date();
+    const end = seasonEndD;
+    const diff = Math.ceil((end - now) / (1000*60*60*24));
+    const d = clamp(diff, -999, 999);
+    return d;
+  }
+
+  function setHeader(){
+    els.hdrTitle.textContent = "HIGH1 SEASON 가계부";
+    els.hdrSub.textContent = `기간: ${SEASON_START} ~ ${SEASON_END} · 결제: 체크/아리랑/현금`;
+
+    els.monthBig.textContent = fmtYM(state.viewYM);
+    const d = seasonDDay();
+    els.monthTiny.textContent = (d >= 0) ? `SEASON D-${pad(d)}` : `SEASON D+${pad(Math.abs(d))}`;
+  }
+
+  function itemsForDate(dateISO){
+    return state.items.filter(it => it.date === dateISO);
+  }
+
+  function sumForDate(dateISO){
+    const it = itemsForDate(dateISO);
+    let out = 0, inx = 0;
+    for(const x of it){
+      if(x.type === "out") out += x.amount;
+      else inx += x.amount;
+    }
+    return {out, inx, net: inx - out, count: it.length};
+  }
+
+  function topMethodForDate(dateISO){
+    const it = itemsForDate(dateISO).filter(x=>x.type==="out");
+    if(!it.length) return null;
+    const s = {A:0, C:0, H:0};
+    for(const x of it) s[x.method] += x.amount;
+    const entries = Object.entries(s).sort((a,b)=> b[1]-a[1]);
+    if(entries[0][1] <= 0) return null;
+    return {method: entries[0][0], amount: entries[0][1]};
+  }
+
+  function methodName(m){
+    return m === "A" ? "아리랑" : (m === "C" ? "체크" : "현금");
+  }
+  function methodClass(m){
+    return m === "A" ? "red" : (m === "C" ? "green" : "snow");
+  }
+
+  function renderCalendar(){
+    setHeader();
+    els.cal.innerHTML = "";
+
+    // ensure view is within season months
+    const minYM = toYM(seasonStartD);
+    const maxYM = toYM(seasonEndD);
+    if(state.viewYM < minYM) state.viewYM = minYM;
+    if(state.viewYM > maxYM) state.viewYM = maxYM;
+
+    els.monthBig.textContent = fmtYM(state.viewYM);
+
+    const blanks = firstDow(state.viewYM);
+    const dim = daysInMonth(state.viewYM);
+    const [y,m] = state.viewYM.split("-").map(Number);
+
+    // pad blanks
+    for(let i=0;i<blanks;i++){
+      const ph = document.createElement("div");
+      ph.className = "cell disabled";
+      ph.style.minHeight = "88px";
+      ph.style.background = "transparent";
+      ph.style.borderColor = "transparent";
+      els.cal.appendChild(ph);
+    }
+
+    for(let d=1; d<=dim; d++){
+      const dateISO = `${y}-${pad(m)}-${pad(d)}`;
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      const isDisabled = !inSeason(dateISO);
+      if(isDisabled) cell.classList.add("disabled");
+      if(dateISO === todayISO) cell.classList.add("today");
+      if(dateISO === state.selectedDate) cell.classList.add("selected");
+
+      const {out, count} = sumForDate(dateISO);
+      const top = topMethodForDate(dateISO);
+
+      const mini = inSeason(dateISO) ? (dateISO === todayISO ? "TODAY" : "") : "—";
+      const amtLine = out > 0 ? `-${fmtKRW(out)}` : (count ? "0" : "");
+
+      cell.innerHTML = `
+        <div class="spark"></div>
+        <div class="d">
+          <div class="num">${d}</div>
+          <div class="mini">${mini}</div>
+        </div>
+        <div class="sumline">
+          ${out > 0 ? `<div class="amt">${amtLine}</div>` : (count ? `<div class="amt">0</div>` : `<div class="amt" style="color:rgba(255,255,255,.30)"> </div>`)}
+          ${top ? `<div class="pill ${methodClass(top.method)}">[${methodName(top.method)}] ${fmtKRW(top.amount)}</div>` : `<div class="pill" style="opacity:.45"> </div>`}
+        </div>
+      `;
+
+      cell.addEventListener("click", () => {
+        if(isDisabled) { toast("시즌 기간 밖이에요"); return; }
+        state.selectedDate = dateISO;
+        save();
+        renderAll();
+      });
+
+      els.cal.appendChild(cell);
+    }
+
+    // nav enable/disable
+    const min = toYM(seasonStartD);
+    const max = toYM(seasonEndD);
+    els.prevM.disabled = (state.viewYM <= min);
+    els.nextM.disabled = (state.viewYM >= max);
+    if(els.prevM.disabled) els.prevM.style.opacity = ".45"; else els.prevM.style.opacity = "1";
+    if(els.nextM.disabled) els.nextM.style.opacity = ".45"; else els.nextM.style.opacity = "1";
+  }
+
+  /* =========================
+     Right panel: selected day list + method summary
+  ========================= */
+  function calcSums(){
+    const ym = state.viewYM;
+
+    const monthItems = state.items.filter(it => it.date.slice(0,7) === ym && it.type === "out");
+    const seasonItems = state.items.filter(it => it.date >= SEASON_START && it.date <= SEASON_END && it.type === "out");
+
+    const sumBy = (items) => {
+      const s = {A:0, C:0, H:0};
+      for(const x of items) s[x.method] += x.amount;
+      return s;
+    };
+
+    const m = sumBy(monthItems);
+    const s = sumBy(seasonItems);
+
+    const mTotal = m.A + m.C + m.H;
+    const pct = (v) => mTotal ? Math.round((v / mTotal) * 100) : 0;
+
+    return {m, s, pctA:pct(m.A), pctC:pct(m.C), pctH:pct(m.H)};
+  }
+
+  function renderSummary(){
+    els.rangeLabel.textContent = `MONTH ${fmtYM(state.viewYM)}`;
+
+    const {m, s, pctA, pctC, pctH} = calcSums();
+
+    els.aMonth.textContent = fmtKRW(m.A);
+    els.cMonth.textContent = fmtKRW(m.C);
+    els.hMonth.textContent = fmtKRW(m.H);
+
+    els.aSeason.textContent = `시즌 누적 ${fmtKRW(s.A)}`;
+    els.cSeason.textContent = `시즌 누적 ${fmtKRW(s.C)}`;
+    els.hSeason.textContent = `시즌 누적 ${fmtKRW(s.H)}`;
+
+    els.aPct.style.width = pctA + "%";
+    els.cPct.style.width = pctC + "%";
+    els.hPct.style.width = pctH + "%";
+  }
+
+  function renderDayList(){
+    const dateISO = state.selectedDate;
+    const items = itemsForDate(dateISO).slice().sort((a,b)=> b.ts - a.ts);
+
+    els.selDate.textContent = dateISO;
+    const {out} = sumForDate(dateISO);
+    els.selOut.textContent = fmtKRW(out);
+
+    els.list.innerHTML = "";
+    els.empty.style.display = items.length ? "none" : "block";
+
+    for(const it of items){
+      const methodCls = it.method === "A" ? "methodA" : (it.method === "C" ? "methodC" : "methodH");
+      const methodTxt = it.method === "A" ? "정선아리랑" : (it.method === "C" ? "체크" : "현금");
+      const memo = (it.memo || "").trim();
+
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div class="meta">
+          <div class="topline">
+            <span class="tag ${methodCls}">${methodTxt}</span>
+            <span class="tag">${escapeHtml(it.cat)}</span>
+            <span class="tag" style="opacity:.7">${it.type === "out" ? "지출" : "수입"}</span>
+          </div>
+          <div class="memo">${memo ? escapeHtml(memo) : "<span style='color:rgba(255,255,255,.38)'>메모 없음</span>"}</div>
+        </div>
+        <div class="amtR">
+          <div class="n">${fmtSigned(it.type, it.amount)}</div>
+          <div style="display:flex; gap:8px;">
+            <button class="iconbtn" data-act="edit" data-id="${it.id}">수정</button>
+            <button class="iconbtn" data-act="del" data-id="${it.id}">삭제</button>
+          </div>
+        </div>
+      `;
+
+      els.list.appendChild(div);
+    }
+
+    els.list.onclick = (e) => {
+      const btn = e.target.closest("button");
+      if(!btn) return;
+      const id = btn.dataset.id;
+      const act = btn.dataset.act;
+      if(act === "del"){
+        if(confirm("이 내역을 삭제할까?")) {
+          state.items = state.items.filter(x => x.id !== id);
+          save();
+          renderAll();
+          toast("삭제됨");
+        }
+      }
+      if(act === "edit"){
+        const x = state.items.find(z => z.id === id);
+        if(!x) return;
+        openSheet(x.method, x); // load into sheet
+      }
+    };
+  }
+
+  function renderAll(){
+    renderCalendar();
+    renderSummary();
+    renderDayList();
+  }
+
+  /* =========================
+     Sheet actions
+  ========================= */
+  let editingId = null;
+
+  function openSheet(method, existing=null){
+    const dateISO = state.selectedDate;
+    editingId = existing ? existing.id : null;
+
+    els.sheetTitle.textContent = existing ? "거래 수정" : "거래 추가";
+    els.sheetSub.textContent = `${dateISO} · ${method === "A" ? "정선아리랑상품권" : (method === "C" ? "체크카드" : "현금")}`;
+
+    els.fDate.value = existing ? existing.date : dateISO;
+    els.fAmt.value = existing ? existing.amount : "";
+    els.fMethod.value = existing ? existing.method : method;
+    els.fType.value = existing ? existing.type : "out";
+    els.fCat.value = existing ? existing.cat : "식비";
+    els.fMemo.value = existing ? (existing.memo || "") : "";
+
+    els.sheetBack.classList.add("show");
+    els.sheetBack.setAttribute("aria-hidden", "false");
+    setTimeout(()=> els.fAmt.focus(), 60);
+  }
+
+  function closeSheet(){
+    els.sheetBack.classList.remove("show");
+    els.sheetBack.setAttribute("aria-hidden", "true");
+    editingId = null;
+  }
+
+  function upsertItem(){
+    const date = els.fDate.value;
+    const amount = Number(els.fAmt.value);
+    const method = els.fMethod.value;
+    const type = els.fType.value;
+    const cat = els.fCat.value;
+    const memo = (els.fMemo.value || "").trim();
+
+    if(!date || !inSeason(date)){
+      toast("시즌 기간(25.12.17~26.03.16) 안에서만 가능");
+      return;
+    }
+    if(!amount || amount <= 0){
+      toast("금액을 입력해줘");
+      return;
+    }
+
+    if(editingId){
+      const idx = state.items.findIndex(x => x.id === editingId);
+      if(idx >= 0){
+        state.items[idx] = {
+          ...state.items[idx],
+          date, amount: Math.round(amount), method, type, cat, memo,
+          ts: Date.now()
+        };
+      }
+      toast("수정 완료");
+    }else{
+      state.items.push({
+        id: uid(),
+        date,
+        amount: Math.round(amount),
+        method,
+        type,
+        cat,
+        memo,
+        ts: Date.now()
+      });
+      toast("저장 완료");
+    }
+
+    state.selectedDate = clampDate(date);
+    state.viewYM = date.slice(0,7);
+    save();
+    closeSheet();
+    renderAll();
+  }
+
+  /* =========================
+     Export / Import / Reset
+  ========================= */
+  function exportJSON(){
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      season: {start: SEASON_START, end: SEASON_END},
+      data: state
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "high1_ledger_backup.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("백업 저장!");
+  }
+
+  function importJSON(file){
+    const fr = new FileReader();
+    fr.onload = () => {
+      try{
+        const obj = JSON.parse(fr.result);
+        const data = obj?.data || obj;
+        if(!data || !Array.isArray(data.items)) throw new Error("bad");
+        // basic validation + clamp
+        state.items = data.items.filter(x => x && typeof x.date==="string" && inSeason(x.date))
+          .map(x => ({
+            id: x.id || uid(),
+            date: x.date,
+            type: (x.type==="in" ? "in" : "out"),
+            method: (["A","C","H"].includes(x.method) ? x.method : "A"),
+            cat: x.cat || "기타",
+            memo: x.memo || "",
+            amount: Math.abs(Math.round(Number(x.amount)||0)),
+            ts: Number(x.ts)||Date.now()
+          }));
+        state.viewYM = (typeof data.viewYM==="string") ? data.viewYM : state.viewYM;
+        state.selectedDate = clampDate(typeof data.selectedDate==="string" ? data.selectedDate : state.selectedDate);
+        save();
+        renderAll();
+        toast("복원 완료!");
+      }catch(e){
+        toast("복원 실패: 파일 형식 확인");
+      }
+    };
+    fr.readAsText(file);
+  }
+
+  /* =========================
+     Navigation
+  ========================= */
+  function addMonth(ym, delta){
+    const [y,m] = ym.split("-").map(Number);
+    const d = new Date(y, m-1 + delta, 1);
+    return toYM(d);
+  }
+
+  function jumpToday(){
+    const t = clampDate(todayISO);
+    state.selectedDate = t;
+    state.viewYM = t.slice(0,7);
+    save();
+    renderAll();
+    toast("오늘로 이동");
+  }
+
+  /* =========================
+     Snow effect (light)
+  ========================= */
+  function snowInit(){
+    const canvas = els.snow;
+    const ctx = canvas.getContext("2d");
+    let w=0,h=0;
+    let flakes = [];
+    const N = 80;
+
+    function resize(){
+      w = canvas.width = Math.floor(window.innerWidth * devicePixelRatio);
+      h = canvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+      flakes = Array.from({length:N}, () => ({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        r: (Math.random()*2.2 + 0.6) * devicePixelRatio,
+        v: (Math.random()*0.8 + 0.25) * devicePixelRatio,
+        s: (Math.random()*0.6 + 0.15) * devicePixelRatio
+      }));
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function tick(){
+      ctx.clearRect(0,0,w,h);
+      ctx.globalAlpha = 0.9;
+      for(const f of flakes){
+        f.y += f.v;
+        f.x += Math.sin((f.y/h)*Math.PI*2) * f.s;
+        if(f.y > h + 10) { f.y = -10; f.x = Math.random()*w; }
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(241,241,241,.75)";
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  /* =========================
+     Wire events + init
+  ========================= */
+  function init(){
+    load();
+
+    // force view month into season range
+    const minYM = toYM(seasonStartD);
+    const maxYM = toYM(seasonEndD);
+    if(state.viewYM < minYM) state.viewYM = minYM;
+    if(state.viewYM > maxYM) state.viewYM = maxYM;
+
+    // if selectedDate missing, clamp to season
+    state.selectedDate = clampDate(state.selectedDate || SEASON_START);
+
+    // events
+    els.prevM.onclick = () => {
+      const min = toYM(seasonStartD);
+      if(state.viewYM <= min) return;
+      state.viewYM = addMonth(state.viewYM, -1);
+      save();
+      renderAll();
+    };
+    els.nextM.onclick = () => {
+      const max = toYM(seasonEndD);
+      if(state.viewYM >= max) return;
+      state.viewYM = addMonth(state.viewYM, +1);
+      save();
+      renderAll();
+    };
+    els.todayBtn.onclick = jumpToday;
+
+    els.addArirang.onclick = () => openSheet("A");
+    els.addCheck.onclick = () => openSheet("C");
+    els.addCash.onclick = () => openSheet("H");
+
+    els.sheetClose.onclick = closeSheet;
+    els.cancelBtn.onclick = closeSheet;
+    els.sheetBack.addEventListener("click", (e) => {
+      if(e.target === els.sheetBack) closeSheet();
+    });
+    els.saveBtn.onclick = upsertItem;
+
+    els.btnExport.onclick = exportJSON;
+    els.btnImport.onclick = () => els.fileInput.click();
+    els.fileInput.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if(file) importJSON(file);
+      e.target.value = "";
+    };
+
+    els.btnReset.onclick = () => {
+      if(confirm("정말 초기화할까? (복구 불가)")){
+        state.items = [];
+        save();
+        renderAll();
+        toast("초기화 완료");
+      }
+    };
+
+    // First draw
+    snowInit();
+    renderAll();
+
+    // If today out of season, guide to season start
+    if(!inSeason(todayISO)){
+      toast("시즌 기간 화면으로 고정됨");
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
